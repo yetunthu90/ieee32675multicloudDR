@@ -80,11 +80,11 @@ jobs:
 
       - name: Push App Image
         run: |
-          docker tag multidr32675-app ${{ secrets.DOCKER_USERNAME }}/multidrapp:$VERSION
+          docker tag ieee32675multiclouddr-app ${{ secrets.DOCKER_USERNAME }}/multidrapp:$VERSION
           docker push ${{ secrets.DOCKER_USERNAME }}/multiclouddrapp:$VERSION
       
-          docker tag multidr32675-web ${{ secrets.DOCKER_USERNAME }}/multiclouddrweb:$VERSION
+          docker tag ieee32675multiclouddr-web ${{ secrets.DOCKER_USERNAME }}/multiclouddrweb:$VERSION
           docker push ${{ secrets.DOCKER_USERNAME }}/multidrweb:$VERSION
       
-          docker tag multidr32675-database ${{ secrets.DOCKER_USERNAME }}/multiclouddrdatabase:$VERSION
+          docker tag ieee32675multiclouddr-database ${{ secrets.DOCKER_USERNAME }}/multiclouddrdatabase:$VERSION
           docker push ${{ secrets.DOCKER_USERNAME }}/multidrdb:$VERSION
