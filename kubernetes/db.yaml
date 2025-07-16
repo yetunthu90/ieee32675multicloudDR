@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: mysql
-        image: atugroup1/mysqldb:20250301171801
+        image: ye1234/multiclouddrdatabase:20250716114343
         env:
         - name: MYSQL_ROOT_PASSWORD
           value: "HelloDublin"

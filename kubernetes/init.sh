@@ -27,9 +27,9 @@ sleep 5
 kubectl apply -f web-service.yaml
 sleep 1
 #create PHPmyadmin
-kubectl apply -f phpmyadmin.yaml
-sleep 5
+#kubectl apply -f phpmyadmin.yaml
+#sleep 5
 #crete PHPmyadmin service
-kubectl apply -f phpmyadmin-service.yaml
+#kubectl apply -f phpmyadmin-service.yaml
 kubectl get pods
 kubectl get svc
