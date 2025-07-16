@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: app
+  name: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: app
+    spec:
+      containers:
+      - image: atugroup1/app:20250301171801
+        name: app-container
+        workingDir: /var/www
+        ports:
+        - containerPort: 9000
+        resources: {}
+status: {}
