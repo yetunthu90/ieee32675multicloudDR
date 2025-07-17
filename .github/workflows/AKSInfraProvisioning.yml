@@ -8,7 +8,7 @@ on:
 
 jobs:
   terraform:
-    name: Terraform Plan and Apply If Needed
+    name: Terraform Plan and Apply For AKS
     runs-on: ubuntu-latest
 
     env:
