@@ -17,7 +17,7 @@ resource "google_container_cluster" "gke" {
 
   networking_mode           = "VPC_NATIVE"
   remove_default_node_pool  = true
-  enable_autopilot          = false
+  #enable_autopilot          = false
 }
 
 resource "google_container_node_pool" "primary_nodes" {

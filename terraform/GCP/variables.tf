@@ -1,5 +1,5 @@
 variable "gcp_project_id" {
-  description = "GCP Project ID"
+  description = "folkloric-byway-461621-h0"
   type        = string
 }
 
