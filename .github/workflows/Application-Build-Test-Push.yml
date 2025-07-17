@@ -3,7 +3,7 @@ name: Laravel CI/CD with Docker Compose
 on:
   push:
     branches:
-      - dev
+      - main
 
 jobs:
   Application-Build-Test-Pushed:
@@ -17,34 +17,11 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # #STEP 1: Create Laravel .env securely
-      # - name: Create Laravel .env file
-      #   run: |
-      #     echo "APP_ENV=\"${{ secrets.APP_ENV }}\"" >> .env
-      #     echo "APP_KEY=" >> .env
-      #     echo "DB_CONNECTION=\"${{ secrets.DB_CONNECTION }}\"" >> .env
-      #     echo "DB_HOST=\"${{ secrets.DB_HOST }}\"" >> .env
-      #     echo "DB_PORT=\"${{ secrets.DB_PORT }}\"" >> .env
-      #     echo "DB_DATABASE=\"${{ secrets.DB_DATABASE }}\"" >> .env
-      #     echo "DB_USERNAME=\"${{ secrets.DB_USERNAME }}\"" >> .env
-      #     echo "DB_PASSWORD=\"${{ secrets.DB_PASSWORD }}\"" >> .env
-
-
-      # # STEP 2: Start Docker Compose with secrets
-      # - name: Start Docker Compose Services
-      #   env:
-      #     DB_HOST: ${{ secrets.DB_HOST }}
-      #     DB_PORT: ${{ secrets.DB_PORT }}
-      #     DB_DATABASE: ${{ secrets.DB_DATABASE }}
-      #     DB_USERNAME: ${{ secrets.DB_USERNAME }}
-      #     DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      #   run: docker compose up -d --build
 
       - name: Start Docker Compose Services
         run: |
           docker compose up -d --build
 
-      # STEP 3: Wait longer for containers to start
       - name: Wait for all Containers to Be Ready
         run: sleep 5
 
