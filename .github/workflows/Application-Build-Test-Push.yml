@@ -1,4 +1,4 @@
-name: Laravel CI/CD with Docker Compose
+name: Application CICD Pipeline (Build-Test-Pushed)
 
 on:
   push:
