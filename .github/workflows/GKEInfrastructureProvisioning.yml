@@ -1,50 +1,68 @@
-name: "GKE Infra Provisioning"
+name: Terraform GKE Plan & Apply
 
 on:
   push:
-    paths:
-      - 'terraform/GCP/**'
     branches:
       - pipelinetest
   workflow_dispatch:
 
-env:
-  TF_VAR_gcp_project_id: folkloric-byway-461621-h0
-  TF_VAR_gcp_region: us-central1
-
 jobs:
   terraform:
-    name: "Terraform GKE Plan & Apply"
+    name: Terraform Plan and Apply for GKE
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: terraform/GCP
+
+    env:
+      TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+      TF_VAR_gcp_region: ${{ secrets.GCP_REGION }}
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
-      - name: Setup gcloud CLI
+      - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Terraform Init
-        run: terraform init
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.0
 
-      - name: Terraform Format Check
-        run: terraform fmt -check
+      - name: Terraform Init
+        run: terraform init -reconfigure
+        working-directory: terraform/GCP
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: terraform/GCP
 
       - name: Terraform Plan
-        id: tf-plan
-        run: terraform plan -no-color -out=tfplan.out
+        id: plan
+        run: |
+          terraform plan -out=tfplan.binary
+          terraform show -json tfplan.binary > tfplan.json
+        working-directory: terraform/GCP
 
-      # - name: Terraform Apply (only if plan has changes)
-      #   if: steps.tf-plan.outputs.stdout != '' && github.ref == 'refs/heads/main'
-      #   run: terraform apply -auto-approve tfplan.out
+      - name: Upload plan JSON artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-json
+          path: terraform/GCP/tfplan.json
+
+      - name: Detect changes in plan
+        id: detect
+        run: |
+          if grep -q '"changesPresent": true' terraform/GCP/tfplan.json; then
+            echo "CHANGES=true" >> $GITHUB_ENV
+          else
+            echo "CHANGES=false" >> $GITHUB_ENV
+          fi
+
+      # - name: Terraform Apply
+      #   if: env.CHANGES == 'true'
+      #   run: terraform apply -auto-approve tfplan.binary
+      #   working-directory: terraform/GCP
