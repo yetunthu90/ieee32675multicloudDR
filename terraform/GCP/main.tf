@@ -4,8 +4,8 @@ provider "google" {
 }
 
 resource "google_container_cluster" "gke" {
-  name     = "gke-laravel-dr"
-  location = var.gcp_region
+  name               = "gke-laravel-dr"
+  location           = var.gcp_region
   initial_node_count = 1
 
   node_config {
@@ -15,8 +15,8 @@ resource "google_container_cluster" "gke" {
     ]
   }
 
-  networking_mode           = "VPC_NATIVE"
-  remove_default_node_pool  = true
+  networking_mode          = "VPC_NATIVE"
+  remove_default_node_pool = true
   #enable_autopilot          = false
 }
 
