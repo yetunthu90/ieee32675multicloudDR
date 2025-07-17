@@ -1,0 +1,62 @@
+name: Terraform AKS Plan & Apply
+
+on:
+  push:
+    branches:
+      - pipelinetest
+  workflow_dispatch:
+
+jobs:
+  terraform:
+    name: Terraform Plan and Apply If Needed
+    runs-on: ubuntu-latest
+
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.0
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform/Azure
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: terraform/Azure
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan -out=tfplan.binary
+          terraform show -json tfplan.binary > tfplan.json
+        working-directory: terraform/Azure
+
+      - name: Upload plan JSON artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-json
+          path: terraform/Azure/tfplan.json
+
+      - name: Detect changes in plan
+        id: detect
+        run: |
+          if grep -q '"changesPresent": true' terraform/Azure/tfplan.json; then
+            echo "CHANGES=true" >> $GITHUB_ENV
+          else
+            echo "CHANGES=false" >> $GITHUB_ENV
+          fi
+
+      # - name: Terraform Apply
+      #   if: env.CHANGES == 'true'
+      #   run: terraform apply -auto-approve tfplan.binary
+      #   working-directory: terraform/Azure
