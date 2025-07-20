@@ -60,3 +60,14 @@ jobs:
         if: env.CHANGES == 'true'
         run: terraform apply -auto-approve tfplan.binary
         working-directory: terraform/Azure
+
+      - name: Get AKS Credentials
+       # if: env.CHANGES == 'true'
+        run: |
+          az aks get-credentials --resource-group my-tfstate-rg --name aks-multicloud-dr --overwrite-existing
+
+      - name: Run AKS init.sh script
+       # if: env.CHANGES == 'true'
+        run: |
+          chmod +x kubernetes/AKSCluster/init.sh
+          ./kubernetes/AKSCluster/init.sh
