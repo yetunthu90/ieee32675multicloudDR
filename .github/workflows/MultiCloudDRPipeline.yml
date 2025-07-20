@@ -126,7 +126,7 @@ jobs:
     needs: AKS-Infrastructure-Provisioning-With-Terraform
     runs-on: ubuntu-latest
     env:
-      VERSION: ${{ needs.Build-Test-Pushed.outputs.version }}
+      VERSION: ${{ needs.Laravel-Application-Build-Test-Pushed.outputs.version }}
     steps:
       - name: Deploy Using Version
         run: echo "Deploying version $VERSION"
