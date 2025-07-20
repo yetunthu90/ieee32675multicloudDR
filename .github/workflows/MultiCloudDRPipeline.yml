@@ -54,8 +54,8 @@ jobs:
         run: |
           VERSION=$(date +%Y%m%d%H%M%S)
           echo "VERSION=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+          echo "VERSION=$VERSION"
           echo "VERSION=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
-          echo "::set-output name=VERSION::$VERSION"
 
       - name: Push App Image
         run: |
@@ -73,12 +73,14 @@ jobs:
     name: Terraform Plan and Apply For AKS
     needs: Laravel-Application-Build-Test-Pushed
     runs-on: ubuntu-latest
-
+    outputs:
+     version: $VERSION
     env:
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      VERSION: ${{ needs.Laravel-Application-Build-Test-Pushed.outputs.version }}
 
     steps:
       - name: Checkout repository
@@ -128,7 +130,7 @@ jobs:
     needs: AKS-Infrastructure-Provisioning-With-Terraform
     runs-on: ubuntu-latest
     env:
-      VERSION: ${{ needs.Laravel-Application-Build-Test-Pushed.outputs.version }}
+      VERSION: ${{ needs.AKS-Infrastructure-Provisioning-With-Terraform.outputs.version }}
     steps:
       - name: Deploy Using Version
         run: echo "Deploying version $VERSION"
