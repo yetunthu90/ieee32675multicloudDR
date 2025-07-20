@@ -55,6 +55,7 @@ jobs:
           VERSION=$(date +%Y%m%d%H%M%S)
           echo "VERSION=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
           echo "VERSION=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+          echo "::set-output name=VERSION::$VERSION"
 
       - name: Push App Image
         run: |
