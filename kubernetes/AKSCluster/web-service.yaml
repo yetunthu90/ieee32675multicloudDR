@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  annotations: 
+    service.beta.kubernetes.io/azure-load-balancer-resource-group: "my-tfstate-rg"
+  labels:
+    app: web
+spec:
+  selector:
+    app: web
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+    nodePort: 30005
+  #type: NodePort
+  type: LoadBalancer
+  loadBalancerIP: 20.165.220.107
+
