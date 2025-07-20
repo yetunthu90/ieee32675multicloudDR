@@ -1,6 +1,6 @@
 variable "resource_group_name" {
   type        = string
-  default     = "studentproject"
+  default     = "my-tfstate-rg"
   description = "The name of the existing resource group."
 }
 
@@ -30,6 +30,6 @@ variable "username" {
 
 variable "public_ip_name" {
   type        = string
-  default     = "webservicepublicip"
+  default     = "akspublicip"
   description = "Name of the public IP to bind to the load balancer."
 }
