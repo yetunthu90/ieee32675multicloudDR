@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  Laravel-Application-Build-Test-Pushed:
+  Application-Build-Test-Pushed:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.set_version.outputs.VERSION }}
@@ -70,7 +70,7 @@ jobs:
 
 
   AKS-Infrastructure-Provisioning-With-Terraform:
-    name: Terraform Plan and Apply For AKS
+    name: AKS Terraform Plan and Apply
     needs: Laravel-Application-Build-Test-Pushed
     runs-on: ubuntu-latest
     outputs:
@@ -156,7 +156,7 @@ jobs:
 
 
   GKE-Infrastructure-Provisioning-With-Terraform:
-    name: Terraform Plan and Apply for GKE
+    name: GKE Terraform Plan and Apply
     runs-on: ubuntu-latest
     needs: Laravel-Application-Build-Test-Pushed
 
@@ -201,6 +201,7 @@ jobs:
         with:
           name: tfplan-json
           path: terraform/GCP/tfplan.json
+          overwrite: true
 
       - name: Detect changes in plan
         id: detect
