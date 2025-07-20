@@ -63,6 +63,6 @@ jobs:
           fi
 
       - name: Terraform Apply
-      #   if: env.CHANGES == 'true'
+        if: env.CHANGES == 'true'
         run: terraform apply -auto-approve tfplan.binary
         working-directory: terraform/GCP
