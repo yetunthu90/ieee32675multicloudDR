@@ -3,7 +3,7 @@ name: Terraform GKE Plan & Apply
 on:
   push:
     branches:
-      - pipelinetest
+      - main
   workflow_dispatch:
 
 jobs:
