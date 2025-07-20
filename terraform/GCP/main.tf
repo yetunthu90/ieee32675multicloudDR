@@ -9,7 +9,7 @@ resource "google_container_cluster" "gke" {
   initial_node_count = 1
 
   node_config {
-    machine_type = "e2-medium"
+    machine_type = "e2-small"
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform",
     ]
@@ -26,7 +26,7 @@ resource "google_container_node_pool" "primary_nodes" {
   location = var.gcp_region
 
   node_config {
-    machine_type = "e2-medium"
+    machine_type = "e2-small"
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform",
     ]

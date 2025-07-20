@@ -62,7 +62,7 @@ jobs:
             echo "CHANGES=false" >> $GITHUB_ENV
           fi
 
-      # - name: Terraform Apply
+      - name: Terraform Apply
       #   if: env.CHANGES == 'true'
-      #   run: terraform apply -auto-approve tfplan.binary
-      #   working-directory: terraform/GCP
+        run: terraform apply -auto-approve tfplan.binary
+        working-directory: terraform/GCP
