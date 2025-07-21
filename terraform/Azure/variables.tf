@@ -1,29 +1,35 @@
+variable "resource_group_name" {
+  type        = string
+  default     = "my-tfstate-rg"
+  description = "The name of the existing resource group."
+}
+
 variable "resource_group_location" {
   type        = string
   default     = "eastus"
   description = "Location of the resource group."
 }
 
-variable "resource_group_name_prefix" {
+variable "cluster_name" {
   type        = string
-  default     = "rg"
-  description = "Prefix of the resource group name that's combined with a random ID so name is unique in your Azure subscription."
+  default     = "aks-multicloud-dr"
+  description = "Name of the AKS cluster."
 }
 
 variable "node_count" {
   type        = number
-  description = "The initial quantity of nodes for the node pool."
   default     = 1
-}
-
-variable "msi_id" {
-  type        = string
-  description = "The Managed Service Identity ID. Set this value if you're running this example using Managed Identity as the authentication method."
-  default     = null
+  description = "Initial number of nodes."
 }
 
 variable "username" {
   type        = string
-  description = "The admin username for the new cluster."
   default     = "azureadmin"
+  description = "Admin username for SSH access."
+}
+
+variable "public_ip_name" {
+  type        = string
+  default     = "akspublicip"
+  description = "Name of the public IP to bind to the load balancer."
 }

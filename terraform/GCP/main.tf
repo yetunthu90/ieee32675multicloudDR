@@ -4,19 +4,19 @@ provider "google" {
 }
 
 resource "google_container_cluster" "gke" {
-  name     = "gke-laravel-dr"
-  location = var.gcp_region
+  name               = "gke-laravel-dr"
+  location           = var.gcp_region
   initial_node_count = 1
 
   node_config {
-    machine_type = "e2-medium"
+    machine_type = "e2-small"
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform",
     ]
   }
 
-  networking_mode           = "VPC_NATIVE"
-  remove_default_node_pool  = true
+  networking_mode          = "VPC_NATIVE"
+  remove_default_node_pool = true
   #enable_autopilot          = false
 }
 
@@ -26,7 +26,7 @@ resource "google_container_node_pool" "primary_nodes" {
   location = var.gcp_region
 
   node_config {
-    machine_type = "e2-medium"
+    machine_type = "e2-small"
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform",
     ]
