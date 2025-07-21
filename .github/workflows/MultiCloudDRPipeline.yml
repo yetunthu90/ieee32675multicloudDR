@@ -216,3 +216,37 @@ jobs:
         if: env.CHANGES == 'true'
         run: terraform apply -auto-approve tfplan.binary
         working-directory: terraform/GCP
+
+        
+  Deploy-Application-To-GKE:
+    name: Deploy Application to GKE
+    needs: GKE-Infrastructure-Provisioning-With-Terraform
+    runs-on: ubuntu-latest
+
+    env:
+      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      CLUSTER_NAME: <your-gke-cluster-name>
+      CLUSTER_REGION: <your-gke-region>
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Get GKE credentials
+        run: |
+          gcloud container clusters get-credentials "$CLUSTER_NAME" \
+            --region "$CLUSTER_REGION" \
+            --project "$PROJECT_ID"
+
+      - name: Verify GKE Access
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
