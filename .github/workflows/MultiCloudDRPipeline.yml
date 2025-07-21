@@ -217,7 +217,7 @@ jobs:
         run: terraform apply -auto-approve tfplan.binary
         working-directory: terraform/GCP
 
-        
+
   Deploy-Application-To-GKE:
     name: Deploy Application to GKE
     needs: GKE-Infrastructure-Provisioning-With-Terraform
@@ -225,8 +225,8 @@ jobs:
 
     env:
       PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-      CLUSTER_NAME: <your-gke-cluster-name>
-      CLUSTER_REGION: <your-gke-region>
+      CLUSTER_NAME: gke-laravel-dr
+      CLUSTER_REGION: us-central1
     
     steps:
       - name: Checkout Repository
