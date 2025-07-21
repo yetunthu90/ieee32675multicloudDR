@@ -1,0 +1,218 @@
+name: Multi Cloud DR Pipeline
+
+on:
+  push:
+    branches:
+      - pipelinetest
+  workflow_dispatch:
+
+jobs:
+  Application-Build-Test-Pushed:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set_version.outputs.VERSION }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Start Docker Compose Services
+        run: |
+          docker compose up -d --build
+
+      - name: Wait for all Containers to Be Ready
+        run: sleep 5
+
+      - name: Show Docker Compose Images
+        run: docker compose images
+
+      - name: Install Dependencies
+        run: docker compose exec app composer install
+
+      - name: Generate Laravel APP_KEY
+        run: docker compose exec app php artisan key:generate
+
+      - name: Run Migrations
+        run: docker compose exec app php artisan migrate --force
+
+      - name: Run Tests
+        run: docker compose exec app php artisan test
+
+      - name: Stop and Remove Containers
+        run: docker compose down
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Set Version
+        id: set_version
+        run: |
+          VERSION=$(date +%Y%m%d%H%M%S)
+          echo "VERSION=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+          echo "VERSION=$VERSION"
+          echo "VERSION=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+
+      - name: Push App Image
+        run: |
+          docker tag ieee32675multiclouddr-app ${{ secrets.DOCKER_USERNAME }}/multiclouddrapp:$VERSION
+          docker push ${{ secrets.DOCKER_USERNAME }}/multiclouddrapp:$VERSION
+      
+          docker tag ieee32675multiclouddr-web ${{ secrets.DOCKER_USERNAME }}/multiclouddrweb:$VERSION
+          docker push ${{ secrets.DOCKER_USERNAME }}/multiclouddrweb:$VERSION
+      
+          docker tag ieee32675multiclouddr-database ${{ secrets.DOCKER_USERNAME }}/multiclouddrdatabase:$VERSION
+          docker push ${{ secrets.DOCKER_USERNAME }}/multiclouddrdatabase:$VERSION
+
+
+  AKS-Infrastructure-Provisioning-With-Terraform:
+    name: AKS Terraform Plan and Apply
+    needs: Application-Build-Test-Pushed
+    runs-on: ubuntu-latest
+    outputs:
+     version: ${{ needs.Application-Build-Test-Pushed.outputs.version }}
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      VERSION: ${{ needs.Application-Build-Test-Pushed.outputs.version }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.0
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform/Azure
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: terraform/Azure
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan -out=tfplan.binary
+          terraform show -json tfplan.binary > tfplan.json
+        working-directory: terraform/Azure
+
+      - name: Upload plan JSON artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-json
+          path: terraform/Azure/tfplan.json
+
+      - name: Detect changes in plan
+        id: detect
+        run: |
+          if grep -q '"changesPresent": true' terraform/Azure/tfplan.json; then
+            echo "CHANGES=true" >> $GITHUB_ENV
+          else
+            echo "CHANGES=false" >> $GITHUB_ENV
+          fi
+
+      - name: Terraform Apply
+        if: env.CHANGES == 'true'
+        run: terraform apply -auto-approve tfplan.binary
+        working-directory: terraform/Azure
+
+  Deploy-Application-To-AKS:
+    needs: AKS-Infrastructure-Provisioning-With-Terraform
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.AKS-Infrastructure-Provisioning-With-Terraform.outputs.version }}
+    steps:
+      - name: Deploy Using Version
+        run: echo "Deploying version $VERSION"
+
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Kubernetes CLI
+        uses: azure/setup-kubectl@v3
+
+      - name: Configure Kubeconfig
+        run: |
+         mkdir -p $HOME/.kube  # Ensure .kube directory exists
+         echo "${{ secrets.KUBECONFIG }}" | base64 --decode > $HOME/.kube/config
+         chmod 600 $HOME/.kube/config  # Secure the config file
+      - name: Verify Kubernetes Connection
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+          kubectl get deployments -n default
+          kubectl get svc
+          kubectl get pods
+
+
+  GKE-Infrastructure-Provisioning-With-Terraform:
+    name: GKE Terraform Plan and Apply
+    runs-on: ubuntu-latest
+    needs: Application-Build-Test-Pushed
+
+    env:
+      TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+      TF_VAR_gcp_region: ${{ secrets.GCP_REGION }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.0
+
+      - name: Terraform Init
+        run: terraform init -reconfigure
+        working-directory: terraform/GCP
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: terraform/GCP
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan -out=tfplan.binary
+          terraform show -json tfplan.binary > tfplan.json
+        working-directory: terraform/GCP
+
+      - name: Upload plan JSON artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-json
+          path: terraform/GCP/tfplan.json
+          overwrite: true
+
+      - name: Detect changes in plan
+        id: detect
+        run: |
+          if grep -q '"changesPresent": true' terraform/GCP/tfplan.json; then
+            echo "CHANGES=true" >> $GITHUB_ENV
+          else
+            echo "CHANGES=false" >> $GITHUB_ENV
+          fi
+
+      - name: Terraform Apply
+        if: env.CHANGES == 'true'
+        run: terraform apply -auto-approve tfplan.binary
+        working-directory: terraform/GCP

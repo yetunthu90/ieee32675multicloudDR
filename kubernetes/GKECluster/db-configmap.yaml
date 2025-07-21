@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: init-sql-config
+data:
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS ReelCraft;
+    CREATE USER 'mysql'@'%' IDENTIFIED BY 'HelloDublin';
+    GRANT ALL PRIVILEGES ON reelcraft.* TO 'mysql'@'%';
+    FLUSH PRIVILEGES;

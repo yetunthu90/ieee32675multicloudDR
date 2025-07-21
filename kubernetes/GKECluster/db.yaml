@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database
+  labels:
+    app: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      containers:
+      - name: mysql
+        image: ye1234/multiclouddrdatabase:20250716114343
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "HelloDublin"
+        - name: MYSQL_USER
+          value: "mysql"
+        - name: MYSQL_PASSWORD
+          value: "HelloDublin"
+        - name: MYSQL_DATABASE
+          value: "reelcraft"
+        - name: MYSQL_ROOT_HOST
+          value: "%" 
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - mountPath: /var/lib/mysql
+          name: dbdata
+        - mountPath: /docker-entrypoint-initdb.d 
+          name: init-sql
+      volumes:
+        - name: dbdata
+          persistentVolumeClaim:
+            claimName: dbdata
+        - name: init-sql
+          configMap:
+            name: init-sql-config
+
+
