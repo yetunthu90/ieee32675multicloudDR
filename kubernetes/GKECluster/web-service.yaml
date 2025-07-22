@@ -4,6 +4,7 @@ metadata:
   name: web
   annotations: 
     cloud.google.com/load-balancer-type: "External"
+    networking.gke.io/load-balancer-tier: "Standard" 
   labels:
     app: web
 spec:
