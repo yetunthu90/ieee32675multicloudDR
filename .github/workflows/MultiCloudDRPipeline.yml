@@ -195,14 +195,13 @@ jobs:
           terraform plan -out=tfplan.binary
           terraform show -json tfplan.binary > tfplan.json
         working-directory: terraform/GCP
-      - name : Temporarily destroy
-        run: terraform destroy -auto-approve
-      # - name: Upload plan JSON artifact
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: tfplan-json
-      #     path: terraform/GCP/tfplan.json
-      #     overwrite: true
+
+      - name: Upload plan JSON artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-json
+          path: terraform/GCP/tfplan.json
+          overwrite: true
 
       # - name: Detect changes in plan
       #   id: detect
@@ -213,49 +212,49 @@ jobs:
       #       echo "CHANGES=false" >> $GITHUB_ENV
       #     fi
 
-      # - name: Terraform Apply
-      #   #if: env.CHANGES == 'true'
-      #   run: terraform apply -auto-approve tfplan.binary
-      #   working-directory: terraform/GCP
+      - name: Terraform Apply
+        #if: env.CHANGES == 'true'
+        run: terraform apply -auto-approve tfplan.binary
+        working-directory: terraform/GCP
 
 
-  # Deploy-Application-To-GKE:
-  #   name: Deploy Application to GKE
-  #   needs: GKE-Infrastructure-Provisioning-With-Terraform
-  #   runs-on: ubuntu-latest
+  Deploy-Application-To-GKE:
+    name: Deploy Application to GKE
+    needs: GKE-Infrastructure-Provisioning-With-Terraform
+    runs-on: ubuntu-latest
 
-  #   env:
-  #     PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  #     CLUSTER_NAME: gke-laravel-dr
-  #     CLUSTER_REGION: us-central1
+    env:
+      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      CLUSTER_NAME: gke-laravel-dr
+      CLUSTER_REGION: us-central1
     
-  #   steps:
-  #     - name: Checkout Repository
-  #       uses: actions/checkout@v3
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-  #     - name: Authenticate to Google Cloud
-  #       uses: google-github-actions/auth@v2
-  #       with:
-  #         credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
-  #     - name: Set up gcloud CLI
-  #       uses: google-github-actions/setup-gcloud@v2
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
 
-  #     - name: Install gke-gcloud-auth-plugin
-  #       run: |
-  #        gcloud components list
-  #        echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-  #        curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
-  #         sudo apt update
-  #         sudo apt-get install -y google-cloud-sdk-gke-gcloud-auth-plugin
+      - name: Install gke-gcloud-auth-plugin
+        run: |
+         gcloud components list
+         echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+         curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+          sudo apt update
+          sudo apt-get install -y google-cloud-sdk-gke-gcloud-auth-plugin
 
-  #     - name: Get GKE credentials
-  #       run: |
-  #         gcloud container clusters get-credentials "$CLUSTER_NAME" \
-  #           --region "$CLUSTER_REGION" \
-  #           --project "$PROJECT_ID"
+      - name: Get GKE credentials
+        run: |
+          gcloud container clusters get-credentials "$CLUSTER_NAME" \
+            --region "$CLUSTER_REGION" \
+            --project "$PROJECT_ID"
 
-  #     - name: Verify GKE Access
-  #       run: |
-  #         kubectl cluster-info
-  #         kubectl get nodes
+      - name: Verify GKE Access
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
