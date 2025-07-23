@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      BUCKET_NAME: velero-backup-<your-unique-id>
+      BUCKET_NAME: velero-backup-gke-cluster
       PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       CLUSTER_NAME: gke-laravel-dr
       CLUSTER_REGION: us-central1
@@ -65,7 +65,7 @@ jobs:
           velero install \
             --provider gcp \
             --plugins velero/velero-plugin-for-gcp:v1.8.2 \
-            --bucket velero-backup-gke-cluster \
+            --bucket $BUCKET_NAME \
             --backup-location-config serviceAccount=velero@$PROJECT_ID.iam.gserviceaccount.com \
             --secret-file ./credentials-velero.json \
             --use-node-agent \
