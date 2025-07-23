@@ -104,6 +104,7 @@ jobs:
       AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CREDENTIALS }}
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       AKS_RESOURCE_GROUP: my-tfstate-rg
+      AKS_VELERO_SECRET: ${{ secrets.AZURE_VELERO_SECRET }}
 
     steps:
       - name: Checkout
@@ -131,7 +132,7 @@ jobs:
           AZURE_SUBSCRIPTION_ID=${AZURE_SUBSCRIPTION_ID}
           AZURE_TENANT_ID=${AZURE_TENANT_ID}
           AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
-          AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+          AZURE_CLIENT_SECRET=${AZURE_VELERO_SECRET}
           AZURE_RESOURCE_GROUP=${AZURE_RESOURCE_GROUP}
           EOF
       - name: Install Velero to AKS
