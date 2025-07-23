@@ -123,6 +123,7 @@ jobs:
       - name: Write Velero Azure credentials
         run: |
           echo '${{ secrets.AZURE_CREDENTIALS }}' > credentials-velero-azure.json
+          echo "AZURE_STORAGE_ACCOUNT_ACCESS_KEY=${{ secrets.AZURE_STORAGE_KEY }}" > credentials-velero.txt
 
       - name: Install Velero to AKS
         run: |
@@ -130,7 +131,7 @@ jobs:
             --provider azure \
             --plugins velero/velero-plugin-for-microsoft-azure:v1.7.0 \
             --bucket $CONTAINER_NAME \
-            --secret-file ./credentials-velero-azure.json \
+            --secret-file ./credentials-velero.txt \
             --backup-location-config resourceGroup=${{ env.RESOURCE_GROUP }},storageAccount=$STORAGE_ACCOUNT_NAME \
             --use-node-agent \
             --default-volumes-to-fs-backup \
