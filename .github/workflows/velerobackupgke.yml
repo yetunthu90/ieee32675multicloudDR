@@ -97,7 +97,7 @@ jobs:
       CLUSTER_NAME: aks-multicloud-dr
       RESOURCE_GROUP: my-tfstate-rg
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      STORAGE_ACCOUNT_NAME: velerobackupstorageacc
+      STORAGE_ACCOUNT_NAME: veleroserviceacc
       CONTAINER_NAME: velero
 
     steps:
