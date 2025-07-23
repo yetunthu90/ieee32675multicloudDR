@@ -72,7 +72,7 @@ jobs:
             velero install \
               --provider gcp \
               --plugins velero/velero-plugin-for-gcp:v1.8.2 \
-              --bucket $BUCKET_NAME \
+              --bucket velero-backup-gke-cluster \
               --backup-location-config serviceAccount=velero@$PROJECT_ID.iam.gserviceaccount.com \
               --secret-file ./credentials-velero.json \
               --use-node-agent
@@ -87,6 +87,3 @@ jobs:
 
       - name: Show Backups
         run: velero backup get
-        
-      - name: Show Backup Status
-        run: velero backup describe $BACKUP_NAME --details
