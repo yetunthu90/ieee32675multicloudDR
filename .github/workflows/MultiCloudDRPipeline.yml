@@ -49,24 +49,24 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Set Version
-        id: set_version
-        run: |
-          VERSION=$(date +%Y%m%d%H%M%S)
-          echo "VERSION=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
-          echo "VERSION=$VERSION"
-          echo "VERSION=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+      # - name: Set Version
+      #   id: set_version
+      #   run: |
+      #     VERSION=$(date +%Y%m%d%H%M%S)
+      #     echo "VERSION=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+      #     echo "VERSION=$VERSION"
+      #     echo "VERSION=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
 
-      - name: Push App Image
-        run: |
-          docker tag ieee32675multiclouddr-app ${{ secrets.DOCKER_USERNAME }}/multiclouddrapp:$VERSION
-          docker push ${{ secrets.DOCKER_USERNAME }}/multiclouddrapp:$VERSION
+      # - name: Push App Image
+      #   run: |
+      #     docker tag ieee32675multiclouddr-app ${{ secrets.DOCKER_USERNAME }}/multiclouddrapp:$VERSION
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/multiclouddrapp:$VERSION
       
-          docker tag ieee32675multiclouddr-web ${{ secrets.DOCKER_USERNAME }}/multiclouddrweb:$VERSION
-          docker push ${{ secrets.DOCKER_USERNAME }}/multiclouddrweb:$VERSION
+      #     docker tag ieee32675multiclouddr-web ${{ secrets.DOCKER_USERNAME }}/multiclouddrweb:$VERSION
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/multiclouddrweb:$VERSION
       
-          docker tag ieee32675multiclouddr-database ${{ secrets.DOCKER_USERNAME }}/multiclouddrdatabase:$VERSION
-          docker push ${{ secrets.DOCKER_USERNAME }}/multiclouddrdatabase:$VERSION
+      #     docker tag ieee32675multiclouddr-database ${{ secrets.DOCKER_USERNAME }}/multiclouddrdatabase:$VERSION
+      #     docker push ${{ secrets.DOCKER_USERNAME }}/multiclouddrdatabase:$VERSION
 
 
   AKS-Infrastructure-Provisioning-With-Terraform:
@@ -203,17 +203,17 @@ jobs:
           path: terraform/GCP/tfplan.json
           overwrite: true
 
-      # - name: Detect changes in plan
-      #   id: detect
-      #   run: |
-      #     if grep -q '"changesPresent": true' terraform/GCP/tfplan.json; then
-      #       echo "CHANGES=true" >> $GITHUB_ENV
-      #     else
-      #       echo "CHANGES=false" >> $GITHUB_ENV
-      #     fi
+      - name: Detect changes in plan
+        id: detect
+        run: |
+          if grep -q '"changesPresent": true' terraform/GCP/tfplan.json; then
+            echo "CHANGES=true" >> $GITHUB_ENV
+          else
+            echo "CHANGES=false" >> $GITHUB_ENV
+          fi
 
       - name: Terraform Apply
-        #if: env.CHANGES == 'true'
+        if: env.CHANGES == 'true'
         run: terraform apply -auto-approve tfplan.binary
         working-directory: terraform/GCP
 
@@ -258,3 +258,5 @@ jobs:
         run: |
           kubectl cluster-info
           kubectl get nodes
+          kubectl get pods
+          kubectl get svc

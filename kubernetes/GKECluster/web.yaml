@@ -18,7 +18,7 @@ spec:
         app: web
     spec:
       containers:
-      - image: ye1234/multiclouddrweb:20250716114343
+      - image: ye1234/multiclouddrweb:20250722214132
         name: web-container
         ports:
          - containerPort: 80
