@@ -1,0 +1,65 @@
+name: GKE Cluster Velero Backup to GCS
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Run daily at 2 AM UTC
+  workflow_dispatch:
+
+jobs:
+  velero-backup:
+    runs-on: ubuntu-latest
+
+    env:
+      BUCKET_NAME: velero-backup-<your-unique-id>
+      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      CLUSTER_NAME: gke-laravel-dr
+      CLUSTER_REGION: us-central1
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Install Velero CLI
+        run: |
+          curl -L https://github.com/vmware-tanzu/velero/releases/download/v1.13.2/velero-v1.13.2-linux-amd64.tar.gz | tar -xz
+          sudo mv velero-v1.13.2-linux-amd64/velero /usr/local/bin
+
+      - name: Write Velero credentials to file
+        run: |
+          echo '${{ secrets.VELERO_GCP_CREDENTIALS }}' > credentials-velero.json
+
+      - name: Get GKE Credentials
+        run: |
+          gcloud container clusters get-credentials "$CLUSTER_NAME" \
+            --region "$CLUSTER_REGION" \
+            --project "$PROJECT_ID"
+
+      - name: Install Velero
+        run: |
+          if ! kubectl get ns velero; then
+            velero install \
+              --provider gcp \
+              --plugins velero/velero-plugin-for-gcp:v1.8.2 \
+              --bucket $BUCKET_NAME \
+              --backup-location-config serviceAccount=velero@$PROJECT_ID.iam.gserviceaccount.com \
+              --secret-file ./credentials-velero.json \
+              --use-restic
+          else
+            echo "Velero is already installed"
+          fi
+
+      - name: Trigger Backup
+        run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M)
+          velero backup create daily-backup-$TIMESTAMP --include-namespaces default
+
+      - name: Show Backups
+        run: velero backup get
