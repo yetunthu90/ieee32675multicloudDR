@@ -60,12 +60,6 @@ jobs:
         run: |
           echo '${{ secrets.VELERO_GCP_CREDENTIALS }}' > credentials-velero.json
 
-      # - name: Get GKE Credentials
-      #   run: |
-      #     gcloud container clusters get-credentials "$CLUSTER_NAME" \
-      #       --region "$CLUSTER_REGION" \
-      #       --project "$PROJECT_ID"
-
       - name: Install Velero
         run: |
           velero install \
@@ -75,6 +69,7 @@ jobs:
             --backup-location-config serviceAccount=velero@$PROJECT_ID.iam.gserviceaccount.com \
             --secret-file ./credentials-velero.json \
             --use-node-agent \
+            --default-volumes-to-fs-backup \
             --velero-pod-cpu-request=200m \
             --velero-pod-mem-request=128Mi \
             --node-agent-pod-cpu-request=200m \
