@@ -103,6 +103,7 @@ jobs:
       AZURE_RESOURCE_GROUP: MC_my-tfstate-rg_aks-multicloud-dr_eastus
       AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CREDENTIALS }}
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AKS_RESOURCE_GROUP: my-tfstate-rg
 
     steps:
       - name: Checkout
@@ -113,11 +114,11 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # - name: Set AKS Credentials
-      #   uses: azure/aks-set-context@v3
-      #   with:
-      #     resource-group: ${{ env.RESOURCE_GROUP }}
-      #     cluster-name: ${{ env.CLUSTER_NAME }}
+      - name: Set AKS Credentials
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: ${{ env.AKS_RESOURCE_GROUP }}
+          cluster-name: ${{ env.CLUSTER_NAME }}
 
       - name: Install Velero CLI
         run: |
