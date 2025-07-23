@@ -1,8 +1,11 @@
 name: GKE Cluster Velero Backup to GCS
 
 on:
-  schedule:
-    - cron: '0 2 * * *'  # Run daily at 2 AM UTC
+  # schedule:
+  #   - cron: '0 2 * * *'  # Run daily at 2 AM UTC
+  push:
+    branches:
+      - velvobackuptest
   workflow_dispatch:
 
 jobs:
