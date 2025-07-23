@@ -75,7 +75,7 @@ jobs:
               --bucket $BUCKET_NAME \
               --backup-location-config serviceAccount=velero@$PROJECT_ID.iam.gserviceaccount.com \
               --secret-file ./credentials-velero.json \
-              --use-restic
+              --use-node-agent
           else
             echo "Velero is already installed"
           fi
