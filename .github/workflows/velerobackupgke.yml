@@ -87,3 +87,6 @@ jobs:
 
       - name: Show Backups
         run: velero backup get
+        
+      - name: Show Backup Status
+        run: velero backup describe $BACKUP_NAME --details
