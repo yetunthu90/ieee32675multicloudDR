@@ -68,7 +68,7 @@ jobs:
 
       - name: Install Velero
         run: |
-          if ! kubectl get ns velero; then
+          # if ! kubectl get ns velero; then
             velero install \
               --provider gcp \
               --plugins velero/velero-plugin-for-gcp:v1.8.2 \
@@ -76,9 +76,9 @@ jobs:
               --backup-location-config serviceAccount=velero@$PROJECT_ID.iam.gserviceaccount.com \
               --secret-file ./credentials-velero.json \
               --use-node-agent
-          else
-            echo "Velero is already installed"
-          fi
+          # else
+          #   echo "Velero is already installed"
+          # fi
 
       - name: Trigger Backup
         run: |
