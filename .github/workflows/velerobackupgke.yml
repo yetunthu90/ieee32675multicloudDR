@@ -65,7 +65,7 @@ jobs:
           velero install \
             --provider gcp \
             --plugins velero/velero-plugin-for-gcp:v1.8.2 \
-            --bucket $BUCKET_NAME \
+            --bucket "$BUCKET_NAME" \
             --backup-location-config serviceAccount=velero@$PROJECT_ID.iam.gserviceaccount.com \
             --secret-file ./credentials-velero.json \
             --use-node-agent \
@@ -77,11 +77,15 @@ jobs:
 
       - name: Wait Velero Agent To be Ready
         run: |
-         sleep 20
+         sleep 10
       - name: Trigger Backup
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M)
           velero backup create daily-backup-$TIMESTAMP --include-namespaces default
+
+      - name: Wait Backup Process
+        run: |
+         sleep 10
 
       - name: Show Backups
         run: velero backup get
