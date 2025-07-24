@@ -128,7 +128,8 @@ jobs:
 
       - name: Write Velero Azure credentials
         run: |
-          cat << EOF  > ./credentials-velero
+          mkdir -p credentials
+          cat << EOF > credentials/cloud
           AZURE_SUBSCRIPTION_ID=${AZURE_SUBSCRIPTION_ID}
           AZURE_TENANT_ID=${AZURE_TENANT_ID}
           AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
@@ -141,7 +142,7 @@ jobs:
             --provider azure \
             --plugins velero/velero-plugin-for-microsoft-azure:v1.7.0 \
             --bucket $CONTAINER_NAME \
-            --secret-file ./credentials-velero \
+            --secret-file ./credentials/cloud \
             --backup-location-config resourceGroup=${{ env.RESOURCE_GROUP }},storageAccount=$STORAGE_ACCOUNT_NAME \
             --use-node-agent \
             --default-volumes-to-fs-backup \
