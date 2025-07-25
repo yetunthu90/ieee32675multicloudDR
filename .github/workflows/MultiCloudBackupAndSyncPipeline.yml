@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       selected-cluster: ${{ steps.set-output.outputs.cluster }}
+    env:
+     CLUSTER_NAME= ${{ steps.set-output.outputs.cluster }}
     steps:
       - name: Resolve DNS
         id: resolve
@@ -23,6 +25,7 @@ jobs:
             echo "Unknown IP resolved: $IP"
             exit 1
           fi
+          echo $CLUSTER_NAME
         shell: bash
 
   aks-backup:
