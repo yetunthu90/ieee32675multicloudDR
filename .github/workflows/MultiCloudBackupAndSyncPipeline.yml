@@ -28,13 +28,13 @@ jobs:
   AKS-Cluster-Is-Active:
     name: Run AKS Velero Backup Job and Rclone Sync
     needs: Determine-Active-Cluster
-    if: needs.determine-cluster.outputs.selected-cluster == 'aks'
+    if: needs.Determine-Active-Cluster.outputs.selected-cluster == 'aks'
     uses: ./.github/workflows/AKS-VeleroBackupAndRclone.yml
     secrets: inherit
 
   GKE-Cluster-Is-Active:
     name: Run GKE Velero Backup Job and Rclone Sync
     needs: Determine-Active-Cluster
-    if: needs.determine-cluster.outputs.selected-cluster == 'gke'
+    if: needs.Determine-Active-Cluster.outputs.selected-cluster == 'gke'
     uses: ./.github/workflows/GKE-VeleroBackupAndRclone.yml
     secrets: inherit
