@@ -100,7 +100,7 @@ jobs:
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       AZURE_CLIENT_ID: 126f95bb-66f7-49ac-9cd5-3a146b63f2ae
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-      AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CREDENTIALS }}
+      AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
       STORAGE_ACCOUNT_NAME: veleroaksbackupstorage
       CONTAINER_NAME: velero
 
