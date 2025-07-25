@@ -28,21 +28,23 @@ jobs:
   aks-backup:
     name: Debug Aks Backup Job
     needs: determine-cluster
-    # Uncomment when ready to conditionally trigger
-    # if: needs.determine-cluster.outputs.selected-cluster == 'aks'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Print confirm AKS backup should run
-        run: |
-          echo "selected-cluster is: ${{ needs.determine-cluster.outputs.selected-cluster }}"
+    if: needs.determine-cluster.outputs.selected-cluster == 'aks'
+    uses: ./.github/workflows/AKS-VeleroBackupAndRclone.yml
+    secrets: inherit
+    # runs-on: ubuntu-latest
+    # steps:
+    #   - name: Print confirm AKS backup should run
+    #     run: |
+    #       echo "selected-cluster is: ${{ needs.determine-cluster.outputs.selected-cluster }}"
 
   gke-backup:
     name: Debug GKE Backup Job
     needs: determine-cluster
-    # Uncomment when ready to conditionally trigger
-    # if: needs.determine-cluster.outputs.selected-cluster == 'gke'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Print confirm GKE backup should run
-        run: |
-          echo "selected-cluster is: ${{ needs.determine-cluster.outputs.selected-cluster }}"
+    if: needs.determine-cluster.outputs.selected-cluster == 'gke'
+    uses: ./.github/workflows/GKE-VeleroBackupAndRclone.yml
+    secrets: inherit
+    # runs-on: ubuntu-latest
+    # steps:
+    #   - name: Print confirm GKE backup should run
+    #     run: |
+    #       echo "selected-cluster is: ${{ needs.determine-cluster.outputs.selected-cluster }}"
