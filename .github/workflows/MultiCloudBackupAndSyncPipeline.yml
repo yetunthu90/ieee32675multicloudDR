@@ -25,11 +25,6 @@ jobs:
           fi
         shell: bash
 
-      - name: Set output
-        id: set-target
-        run: echo "target=${{ steps.check-dns.outputs.target }}"
-        shell: bash
-
   aks-backup:
     needs: determine-cluster
     if: needs.determine-cluster.outputs.selected-cluster == 'aks'
