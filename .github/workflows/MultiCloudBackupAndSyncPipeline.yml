@@ -25,13 +25,14 @@ jobs:
             exit 1
           fi
 
+#If the active cluster is Azure
   AKS-Cluster-Is-Active:
     name: Run AKS Velero Backup Job and Rclone Sync
     needs: Determine-Active-Cluster
     if: needs.Determine-Active-Cluster.outputs.selected-cluster == 'aks'
     uses: ./.github/workflows/AKS-VeleroBackupAndRclone.yml
     secrets: inherit
-
+#If the active cluster is Google
   GKE-Cluster-Is-Active:
     name: Run GKE Velero Backup Job and Rclone Sync
     needs: Determine-Active-Cluster
