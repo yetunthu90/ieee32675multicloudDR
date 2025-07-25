@@ -95,17 +95,13 @@ jobs:
 
     env:
       CLUSTER_NAME: aks-multicloud-dr
-      RESOURCE_GROUP: MC_my-tfstate-rg_aks-multicloud-dr_eastus
       AKS_RESOURCE_GROUP: my-tfstate-rg
-      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      AZURE_CLIENT_ID: 126f95bb-66f7-49ac-9cd5-3a146b63f2ae
-      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-      AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      RESOURCE_GROUP: velerorcgroup
       STORAGE_ACCOUNT_NAME: veleroaksbackupstorage
       CONTAINER_NAME: velero
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Azure Login
@@ -113,7 +109,7 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Set AKS Credentials
+      - name: Set AKS context
         uses: azure/aks-set-context@v3
         with:
           resource-group: ${{ env.AKS_RESOURCE_GROUP }}
@@ -121,27 +117,27 @@ jobs:
 
       - name: Install Velero CLI
         run: |
-          curl -L https://github.com/vmware-tanzu/velero/releases/download/v1.13.2/velero-v1.13.2-linux-amd64.tar.gz | tar -xz
-          sudo mv velero-v1.13.2-linux-amd64/velero /usr/local/bin
+          curl -L https://github.com/vmware-tanzu/velero/releases/latest/download/velero-linux-amd64.tar.gz | tar -xz
+          sudo mv velero-*-linux-amd64/velero /usr/local/bin
 
-      - name: Write Velero Azure credentials
+      - name: Create Velero credentials file
         run: |
-         cat << EOF  > ./credentials-velero
-         AZURE_SUBSCRIPTION_ID=${AZURE_SUBSCRIPTION_ID}
-         AZURE_TENANT_ID=${AZURE_TENANT_ID}
-         AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
-         AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
-         AZURE_RESOURCE_GROUP=${RESOURCE_GROUP}
-         EOF
+          cat <<EOF > credentials-velero
+          AZURE_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_RESOURCE_GROUP=${{ env.RESOURCE_GROUP }}
+          EOF
 
-      - name: Install Velero to AKS
+      - name: Install Velero on AKS
         run: |
           velero install \
             --provider azure \
             --plugins velero/velero-plugin-for-microsoft-azure:v1.7.0 \
-            --bucket $CONTAINER_NAME \
+            --bucket ${{ env.CONTAINER_NAME }} \
             --secret-file ./credentials-velero \
-            --backup-location-config resourceGroup=${{ env.RESOURCE_GROUP }},storageAccount=$STORAGE_ACCOUNT_NAME \
+            --backup-location-config resourceGroup=${{ env.RESOURCE_GROUP }},storageAccount=${{ env.STORAGE_ACCOUNT_NAME }} \
             --use-node-agent \
             --default-volumes-to-fs-backup \
             --velero-pod-cpu-request=200m \
@@ -149,13 +145,16 @@ jobs:
             --node-agent-pod-cpu-request=200m \
             --node-agent-pod-mem-request=256Mi
 
-      - name: Wait for Velero to be Ready
-        run: sleep 20
+      - name: Wait for Velero pods
+        run: sleep 10
 
       - name: Trigger Backup
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M)
           velero backup create aks-backup-$TIMESTAMP --include-namespaces default
+      
+      - name: Wait for Velero Progress
+        run: sleep 20
 
       - name: Show Backups
         run: velero backup get
