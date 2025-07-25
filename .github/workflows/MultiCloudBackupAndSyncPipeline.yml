@@ -23,17 +23,15 @@ jobs:
             echo "Unknown IP resolved: $IP"
             exit 1
           fi
-          echo $GITHUB_OUTPUT
-        shell: bash
 
   aks-backup:
     needs: determine-cluster
-    if: needs.determine-cluster.outputs.selected-cluster == 'aks'
+    if: needs.determine-cluster.outputs.selected-cluster == "aks"
     uses: ./.github/workflows/AKS-VeleroBackupAndRclone.yml
     secrets: inherit
 
   gke-backup:
     needs: determine-cluster
-    if: needs.determine-cluster.outputs.selected-cluster == 'gke'
+    if: needs.determine-cluster.outputs.selected-cluster == "gke"
     uses: ./.github/workflows/GKE-VeleroBackupAndRclone.yml
     secrets: inherit
