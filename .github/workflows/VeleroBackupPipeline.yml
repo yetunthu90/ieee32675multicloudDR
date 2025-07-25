@@ -1,0 +1,159 @@
+name: GKE & AKS Cluster Velero Backup
+
+on:
+  # schedule:
+  #   - cron: '0 2 * * *'  # Run daily at 2 AM UTC
+  push:
+    branches:
+      - velvobackuptest
+  workflow_dispatch:
+
+jobs:
+  GKE-Cluster-velero-backup:
+    runs-on: ubuntu-latest
+
+    env:
+      BUCKET_NAME: velero-backup-gke-cluster
+      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      CLUSTER_NAME: gke-laravel-dr
+      CLUSTER_REGION: us-central1
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Install gke-gcloud-auth-plugin
+        run: |
+         gcloud components list
+         echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+         curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+          sudo apt update
+          sudo apt-get install -y google-cloud-sdk-gke-gcloud-auth-plugin
+
+      - name: Get GKE credentials
+        run: |
+          gcloud container clusters get-credentials "$CLUSTER_NAME" \
+            --region "$CLUSTER_REGION" \
+            --project "$PROJECT_ID"
+
+      - name: Verify GKE Access
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+          kubectl get pods
+          kubectl get svc
+
+      - name: Install Velero CLI
+        run: |
+          curl -L https://github.com/vmware-tanzu/velero/releases/download/v1.13.2/velero-v1.13.2-linux-amd64.tar.gz | tar -xz
+          sudo mv velero-v1.13.2-linux-amd64/velero /usr/local/bin
+
+      - name: Write Velero credentials to file
+        run: |
+          echo '${{ secrets.VELERO_GCP_CREDENTIALS }}' > credentials-velero.json
+
+      - name: Install Velero
+        run: |
+          velero install \
+            --provider gcp \
+            --plugins velero/velero-plugin-for-gcp:v1.8.2 \
+            --bucket "$BUCKET_NAME" \
+            --backup-location-config serviceAccount=velero@$PROJECT_ID.iam.gserviceaccount.com \
+            --secret-file ./credentials-velero.json \
+            --use-node-agent \
+            --default-volumes-to-fs-backup \
+            --velero-pod-cpu-request=200m \
+            --velero-pod-mem-request=128Mi \
+            --node-agent-pod-cpu-request=200m \
+            --node-agent-pod-mem-request=256Mi
+
+      - name: Wait Velero Agent To be Ready
+        run: |
+         sleep 10
+      - name: Trigger Backup
+        run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M)
+          velero backup create daily-backup-$TIMESTAMP --include-namespaces default
+
+      - name: Wait Backup Process
+        run: |
+         sleep 20
+
+      - name: Show Backups
+        run: velero backup get
+
+  AKS-Cluster-velero-backup:
+    runs-on: ubuntu-latest
+    env:
+      CLUSTER_NAME: aks-multicloud-dr
+      AKS_RESOURCE_GROUP: my-tfstate-rg
+      RESOURCE_GROUP: velerorcgroup
+      STORAGE_ACCOUNT_NAME: veleroaksbackupstorage
+      CONTAINER_NAME: velero
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set AKS context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: ${{ env.AKS_RESOURCE_GROUP }}
+          cluster-name: ${{ env.CLUSTER_NAME }}
+
+      - name: Install Velero CLI
+        run: |
+          curl -L https://github.com/vmware-tanzu/velero/releases/download/v1.13.2/velero-v1.13.2-linux-amd64.tar.gz | tar -xz
+          sudo mv velero-v1.13.2-linux-amd64/velero /usr/local/bin
+          
+      - name: Create Velero credentials file
+        run: |
+          cat <<EOF > credentials-velero
+          AZURE_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_RESOURCE_GROUP=${{ env.RESOURCE_GROUP }}
+          EOF
+
+      - name: Install Velero on AKS
+        run: |
+          velero install \
+            --provider azure \
+            --plugins velero/velero-plugin-for-microsoft-azure:v1.7.0 \
+            --bucket ${{ env.CONTAINER_NAME }} \
+            --secret-file ./credentials-velero \
+            --backup-location-config resourceGroup=${{ env.RESOURCE_GROUP }},storageAccount=${{ env.STORAGE_ACCOUNT_NAME }} \
+            --use-node-agent \
+            --default-volumes-to-fs-backup \
+            --velero-pod-cpu-request=200m \
+            --velero-pod-mem-request=128Mi \
+            --node-agent-pod-cpu-request=200m \
+            --node-agent-pod-mem-request=256Mi
+
+      - name: Wait for Velero pods
+        run: sleep 10
+
+      - name: Trigger Backup
+        run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M)
+          velero backup create aks-backup-$TIMESTAMP --include-namespaces default
+      
+      - name: Wait for Velero Progress
+        run: sleep 20
+
+      - name: Show Backups
+        run: velero backup get
