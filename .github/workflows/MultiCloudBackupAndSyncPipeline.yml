@@ -26,14 +26,15 @@ jobs:
       - name: Debug output
         run: |
           echo "Cluster resolved from step: ${{ steps.resolve.outputs.cluster }}"
+
   aks-backup:
     needs: determine-cluster
-    if: needs.determine-cluster.outputs.selected-cluster == 'aks'
+    if: needs.determine-cluster.resolve.outputs.selected-cluster == 'aks'
     uses: ./.github/workflows/AKS-VeleroBackupAndRclone.yml
     secrets: inherit
 
   gke-backup:
     needs: determine-cluster
-    if: needs.determine-cluster.outputs.selected-cluster == 'gke'
+    if: needs.determine-cluster.resolve.outputs.selected-cluster == 'gke'
     uses: ./.github/workflows/GKE-VeleroBackupAndRclone.yml
     secrets: inherit
