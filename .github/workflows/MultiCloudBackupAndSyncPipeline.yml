@@ -30,11 +30,10 @@ jobs:
   aks-backup:
     name: Debug Aks Backup Job
     needs: determine-cluster
-    if: needs.determine-cluster.outputs.selected-cluster == 'aks'
     runs-on: ubuntu-latest
     steps:
       - name: Print confirm AKS backup should run
-        run: echo "AKS backup job is triggered "
+        run: echo ${{ needs.determine-cluster.outputs.selected-cluster }}
 
   # aks-backup:
   #   needs: determine-cluster
