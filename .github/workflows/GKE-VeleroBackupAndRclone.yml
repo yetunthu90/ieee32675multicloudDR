@@ -1,0 +1,86 @@
+name: GKE Velero Backup and Cross-Cloud Sync
+
+on: [workflow_call]
+
+jobs:
+  GKE-Velero-Backup-and-Rclone:
+    runs-on: ubuntu-latest
+    env:
+      BUCKET_NAME: velero-backup-gke-cluster
+      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      CLUSTER_NAME: gke-laravel-dr
+      CLUSTER_REGION: us-central1
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Install GKE gcloud auth plugin
+        run: |
+          sudo apt-get update && sudo apt-get install -y google-cloud-sdk-gke-gcloud-auth-plugin
+
+      - name: Get GKE credentials
+        run: |
+          gcloud container clusters get-credentials "$CLUSTER_NAME" \
+            --region "$CLUSTER_REGION" \
+            --project "$PROJECT_ID"
+
+      - name: Verify GKE Access
+        run: |
+          kubectl get nodes
+          kubectl get pods -n velero
+
+      - name: Install Velero CLI
+        run: |
+          curl -L https://github.com/vmware-tanzu/velero/releases/download/v1.13.2/velero-v1.13.2-linux-amd64.tar.gz | tar -xz
+          sudo mv velero-v1.13.2-linux-amd64/velero /usr/local/bin
+
+      - name: Write Velero credentials to file
+        run: |
+          echo '${{ secrets.VELERO_GCP_CREDENTIALS }}' > credentials-velero.json
+
+      - name: Install Velero
+        run: |
+          velero install \
+            --provider gcp \
+            --plugins velero/velero-plugin-for-gcp:v1.8.2 \
+            --bucket "$BUCKET_NAME" \
+            --backup-location-config serviceAccount=velero@$PROJECT_ID.iam.gserviceaccount.com \
+            --secret-file ./credentials-velero.json \
+            --use-node-agent \
+            --default-volumes-to-fs-backup
+
+      - name: Wait for Velero Agent To be Ready
+        run: sleep 15
+
+      - name: Trigger GKE Backup
+        run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M)
+          velero backup create gke-backup-$TIMESTAMP --include-namespaces default
+
+      - name: Wait for Backup Process
+        run: sleep 40
+
+      - name: Show Backups Status
+        run: velero backup get
+
+      # - name: Install rclone
+      #   run: |
+      #     curl https://rclone.org/install.sh | sudo bash
+
+      # - name: Configure rclone
+      #   run: |
+      #     mkdir -p ~/.config/rclone
+      #     echo "${{ secrets.RCLONE_CONFIG }}" > ~/.config/rclone/rclone.conf
+
+      # - name: Sync GCS ➡ Azure
+      #   run: |
+      #     rclone sync velero-gcs: gcsbackup:aks-copy --progress

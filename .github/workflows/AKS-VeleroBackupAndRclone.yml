@@ -1,0 +1,81 @@
+name: AKS Velero Backup and Cross-Cloud Sync
+
+on: [workflow_call]
+
+jobs:
+  AKS-Velero-Backup-and-Rclone:
+    runs-on: ubuntu-latest
+    env:
+      CLUSTER_NAME: aks-multicloud-dr
+      AKS_RESOURCE_GROUP: my-tfstate-rg
+      RESOURCE_GROUP: velerorcgroup
+      STORAGE_ACCOUNT_NAME: veleroaksbackupstorage
+      CONTAINER_NAME: velero
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set AKS context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: ${{ env.AKS_RESOURCE_GROUP }}
+          cluster-name: ${{ env.CLUSTER_NAME }}
+
+      - name: Install Velero CLI
+        run: |
+          curl -L https://github.com/vmware-tanzu/velero/releases/download/v1.13.2/velero-v1.13.2-linux-amd64.tar.gz | tar -xz
+          sudo mv velero-v1.13.2-linux-amd64/velero /usr/local/bin
+          
+      - name: Create Velero credentials file
+        run: |
+          cat <<EOF > credentials-velero
+          AZURE_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_RESOURCE_GROUP=${{ env.RESOURCE_GROUP }}
+          EOF
+
+      - name: Install Velero
+        run: |
+          velero install \
+            --provider azure \
+            --plugins velero/velero-plugin-for-microsoft-azure:v1.7.0 \
+            --bucket ${{ env.CONTAINER_NAME }} \
+            --secret-file ./credentials-velero \
+            --backup-location-config resourceGroup=${{ env.RESOURCE_GROUP }},storageAccount=${{ env.STORAGE_ACCOUNT_NAME }} \
+            --use-node-agent \
+            --default-volumes-to-fs-backup
+
+      - name: Wait for Velero pods
+        run: sleep 15
+
+      - name: Trigger AKS Backup
+        run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M)
+          velero backup create aks-backup-$TIMESTAMP --include-namespaces default
+
+      - name: Wait for Backup Progress
+        run: sleep 40
+
+      - name: Show Backup Status
+        run: velero backup get
+
+      # - name: Install rclone
+      #   run: |
+      #     curl https://rclone.org/install.sh | sudo bash
+
+      # - name: Configure rclone
+      #   run: |
+      #     mkdir -p ~/.config/rclone
+      #     echo "${{ secrets.RCLONE_CONFIG }}" > ~/.config/rclone/rclone.conf
+
+      # - name: Sync Azure ➡ GCS
+      #   run: |
+      #     rclone sync azurevelero: velero-gcs:aks-backups --progress
