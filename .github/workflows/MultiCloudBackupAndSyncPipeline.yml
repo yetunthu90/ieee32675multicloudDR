@@ -23,7 +23,9 @@ jobs:
             echo "Unknown IP resolved: $IP"
             exit 1
           fi
-
+      - name: Debug output
+        run: |
+          echo "Cluster resolved from step: ${{ steps.resolve.outputs.cluster }}"
   aks-backup:
     needs: determine-cluster
     if: needs.determine-cluster.outputs.selected-cluster == 'aks'
