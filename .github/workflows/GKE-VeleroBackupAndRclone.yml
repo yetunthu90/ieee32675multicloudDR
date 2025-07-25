@@ -64,7 +64,7 @@ jobs:
       - name: Trigger GKE Backup
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M)
-          velero backup create gke-backup-$TIMESTAMP --include-namespaces default
+          velero backup create daily-backup-$TIMESTAMP --include-namespaces default
 
       - name: Wait for Backup Process
         run: sleep 40

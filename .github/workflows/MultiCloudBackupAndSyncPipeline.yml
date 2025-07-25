@@ -6,7 +6,7 @@ on:
       - velvobackuptest
 
 jobs:
-  determine-cluster:
+  Determine-Active-Cluster:
     runs-on: ubuntu-latest
     outputs:
       selected-cluster: ${{ steps.resolve.outputs.cluster }}
@@ -25,14 +25,14 @@ jobs:
             exit 1
           fi
 
-  aks-backup:
+  AKS-Cluster-Is-Active:
     name: Run AKS Velero Backup Job and Rclone Sync
     needs: determine-cluster
     if: needs.determine-cluster.outputs.selected-cluster == 'aks'
     uses: ./.github/workflows/AKS-VeleroBackupAndRclone.yml
     secrets: inherit
 
-  gke-backup:
+  GKE-Cluster-Is-Active:
     name: Run GKE Velero Backup Job and Rclone Sync
     needs: determine-cluster
     if: needs.determine-cluster.outputs.selected-cluster == 'gke'
