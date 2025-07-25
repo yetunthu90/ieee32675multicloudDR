@@ -120,6 +120,7 @@ jobs:
           curl -L https://github.com/vmware-tanzu/velero/releases/latest/download/velero-linux-amd64.tar.gz | tar -xz
           sudo mv velero-*-linux-amd64/velero /usr/local/bin
 
+
       - name: Create Velero credentials file
         run: |
           cat <<EOF > credentials-velero
