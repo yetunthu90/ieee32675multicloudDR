@@ -150,7 +150,7 @@ jobs:
       - name: Trigger Backup
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M)
-          velero backup create aks-backup-$TIMESTAMP --include-namespaces default
+          velero backup create daily-backup-$TIMESTAMP --include-namespaces default
       
       - name: Wait for Velero Progress
         run: sleep 30
