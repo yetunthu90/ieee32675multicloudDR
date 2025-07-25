@@ -16,5 +16,5 @@ spec:
     nodePort: 30005
   #type: NodePort
   type: LoadBalancer
-  loadBalancerIP: 35.206.97.188
+  loadBalancerIP: 35.188.36.154
 
