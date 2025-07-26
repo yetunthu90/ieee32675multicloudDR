@@ -3,7 +3,7 @@ name: Conditional Multi-Cloud Velero Backup with Rclone
 on:
   push:
     branches:
-      - velvobackuptest
+      - pipelinetest
 
 jobs:
   Determine-Active-Cluster:
@@ -32,6 +32,7 @@ jobs:
     if: needs.Determine-Active-Cluster.outputs.selected-cluster == 'aks'
     uses: ./.github/workflows/AKS-VeleroBackupAndRclone.yml
     secrets: inherit
+
 #If the active cluster is Google
   GKE-Cluster-Is-Active:
     name: Run GKE Velero Backup Job and Rclone Sync
