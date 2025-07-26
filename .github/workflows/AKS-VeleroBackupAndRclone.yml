@@ -79,7 +79,7 @@ jobs:
 
       - name: Create service account JSON file
         run: |
-          echo '${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}' > /tmp/gcp-sa.json
+          echo '${{ secrets.GCP_RCLONE_SERVICE_ACCOUNT_JSON }}' > /tmp/gcp-sa.json
 
       - name: Create rclone.conf
         run: |
@@ -92,7 +92,7 @@ jobs:
           [rclone-aks]
           type = azureblob
           account = veleroaksbackupstorage
-          key = ${{ secrets.AZURE_STORAGE_KEY }}
+          key = ${{ secrets.AZURE_RCLONE_KEY }}
           EOF
 
       - name: Run Rclone Sync (AKS To GCS)
