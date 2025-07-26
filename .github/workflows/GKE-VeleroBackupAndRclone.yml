@@ -115,4 +115,4 @@ jobs:
 
       - name: Run Rclone Sync (GCS To ASA)
         run: |
-          rclone sync rclone-gcs:velero-backup-gke-cluster rclone-aks:velero/gke-backups --progress --dry-run
+          rclone --config /tmp/rclone.conf sync rclone-gcs:velero-backup-gke-cluster rclone-aks:velero/gke-backups --progress --dry-run
