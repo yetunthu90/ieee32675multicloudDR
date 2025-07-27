@@ -1,10 +1,6 @@
-name: AKS Velero Backup and Cross-Cloud Sync
+name: AKS Velero Backup and Cross-Cloud Backup Sync
 
 on: [workflow_call]
-# on:
-#   push:
-#     branches:
-#       - velvobackuptest
 jobs:
   AKS-Velero-Backup:
     runs-on: ubuntu-latest
@@ -49,13 +45,18 @@ jobs:
         run: |
           velero install \
             --provider azure \
-            --plugins velero/velero-plugin-for-microsoft-azure:v1.7.0 \
+            --plugins velero/velero-plugin-for-microsoft-azure:v1.8.2 \
             --bucket ${{ env.CONTAINER_NAME }} \
             --secret-file ./credentials-velero \
             --backup-location-config resourceGroup=${{ env.RESOURCE_GROUP }},storageAccount=${{ env.STORAGE_ACCOUNT_NAME }} \
             --use-node-agent \
+            --default-volumes-to-fs-backup
+            --image velero/velero:v1.16.1
+            --velero-pod-cpu-request=200m \
+            --velero-pod-mem-request=128Mi \
+            --node-agent-pod-cpu-request=200m \
+            --node-agent-pod-mem-request=256Mi
 
-#            --default-volumes-to-fs-backup
       - name: Wait for Velero pods
         run: sleep 15
 
@@ -96,10 +97,10 @@ jobs:
           key = ${{ secrets.AZURE_RCLONE_KEY }}
           EOF
 
-      - name: Dry Run Rclone Sync (ASA To GCS)
+      - name: Dry Run Rclone Backup Sync (ASA To GCS)
         run: |
           rclone --config /tmp/rclone.conf sync rclone-aks:velero rclone-gcs:velero-backup-gke-cluster --progress --dry-run 
 
-      - name: Run Rclone Sync (ASA To GCS)
+      - name: Run Rclone Backup Sync (ASA To GCS)
         run: |
           rclone --config /tmp/rclone.conf sync rclone-aks:velero rclone-gcs:velero-backup-gke-cluster --progress

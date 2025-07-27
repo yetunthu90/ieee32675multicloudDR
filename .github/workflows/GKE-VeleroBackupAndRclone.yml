@@ -1,6 +1,5 @@
 name: GKE Velero Backup and Cross-Cloud Sync
-
-# on: [workflow_call]
+#on: [workflow_call]
 on:
   push:
     branches:
@@ -67,6 +66,7 @@ jobs:
             --secret-file ./credentials-velero.json \
             --use-node-agent \
             --default-volumes-to-fs-backup \
+            --image velero/velero:v1.16.1 \
             --velero-pod-cpu-request=200m \
             --velero-pod-mem-request=128Mi \
             --node-agent-pod-cpu-request=200m \
@@ -75,17 +75,17 @@ jobs:
       - name: Wait Velero Agent To be Ready
         run: |
          sleep 10
-      # - name: Trigger Backup
-      #   run: |
-      #     TIMESTAMP=$(date +%Y%m%d%H%M)
-      #     velero backup create daily-backup-$TIMESTAMP --include-namespaces default
+  #     - name: Trigger Backup
+  #       run: |
+  #         TIMESTAMP=$(date +%Y%m%d%H%M)
+  #         velero backup create daily-backup-$TIMESTAMP --include-namespaces default
 
-      # - name: Wait Backup Process
-      #   run: |
-      #    sleep 40
+  #     - name: Wait Backup Process
+  #       run: |
+  #        sleep 40
 
-      # - name: Show Backups Status
-      #   run: velero backup get
+  #     - name: Show Backups Status
+  #       run: velero backup get
 
 
   # GKE-Rclone-Sync-To-AKS:
@@ -114,11 +114,11 @@ jobs:
   #         key = ${{ secrets.AZURE_RCLONE_KEY }}
   #         EOF
 
-  #     - name: Dry Run Rclone Sync (GCS To ASA)
+  #     - name: Dry Run Rclone Backup Sync (GCS To ASA)
   #       run: |
   #         rclone --config /tmp/rclone.conf sync rclone-gcs:velero-backup-gke-cluster rclone-aks:velero/ --progress --dry-run
       
-  #     - name: Run Rclone Sync (GCS To ASA)
+  #     - name: Run Rclone Backup Sync (GCS To ASA)
   #       run: |
   #         rclone --config /tmp/rclone.conf sync rclone-gcs:velero-backup-gke-cluster rclone-aks:velero/ --progress
 
