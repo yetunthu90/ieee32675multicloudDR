@@ -1,9 +1,6 @@
 name: GKE Velero Backup and Cross-Cloud Sync
-#on: [workflow_call]
-on:
-  push:
-    branches:
-      - velvobackuptest
+on: [workflow_call]
+
 jobs:
   GKE-Cluster-velero-backup:
     runs-on: ubuntu-latest
