@@ -3,7 +3,7 @@ name: Conditional Multi-Cloud Velero Backup with Rclone
 on:
   push:
     branches:
-      - pipelinetest
+      - velvobackuptest
 
 jobs:
   Determine-Active-Cluster:
