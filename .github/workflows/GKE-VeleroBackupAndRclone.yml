@@ -1,10 +1,10 @@
 name: GKE Velero Backup and Cross-Cloud Sync
 
-on: [workflow_call]
-# on:
-#   push:
-#     branches:
-#       - velvobackuptest
+# on: [workflow_call]
+on:
+  push:
+    branches:
+      - velvobackuptest
 jobs:
   GKE-Cluster-velero-backup:
     runs-on: ubuntu-latest
@@ -75,50 +75,50 @@ jobs:
       - name: Wait Velero Agent To be Ready
         run: |
          sleep 10
-      - name: Trigger Backup
-        run: |
-          TIMESTAMP=$(date +%Y%m%d%H%M)
-          velero backup create daily-backup-$TIMESTAMP --include-namespaces default
+      # - name: Trigger Backup
+      #   run: |
+      #     TIMESTAMP=$(date +%Y%m%d%H%M)
+      #     velero backup create daily-backup-$TIMESTAMP --include-namespaces default
 
-      - name: Wait Backup Process
-        run: |
-         sleep 40
+      # - name: Wait Backup Process
+      #   run: |
+      #    sleep 40
 
-      - name: Show Backups Status
-        run: velero backup get
+      # - name: Show Backups Status
+      #   run: velero backup get
 
 
-  GKE-Rclone-Sync-To-AKS:
-    runs-on: ubuntu-latest
-    needs: GKE-Cluster-velero-backup
-    steps:
-      - name: Install Rclone
-        run: |
-          curl https://rclone.org/install.sh | sudo bash
+  # GKE-Rclone-Sync-To-AKS:
+  #   runs-on: ubuntu-latest
+  #   needs: GKE-Cluster-velero-backup
+  #   steps:
+  #     - name: Install Rclone
+  #       run: |
+  #         curl https://rclone.org/install.sh | sudo bash
 
-      - name: Create service account JSON file
-        run: |
-          echo '${{ secrets.GCP_RCLONE_SERVICE_ACCOUNT_JSON }}' > /tmp/gcp-sa.json
+  #     - name: Create service account JSON file
+  #       run: |
+  #         echo '${{ secrets.GCP_RCLONE_SERVICE_ACCOUNT_JSON }}' > /tmp/gcp-sa.json
 
-      - name: Create rclone.conf
-        run: |
-          cat <<EOF > /tmp/rclone.conf
-          [rclone-gcs]
-          type = google cloud storage
-          service_account_file = /tmp/gcp-sa.json
-          project_number = 33202688731
+  #     - name: Create rclone.conf
+  #       run: |
+  #         cat <<EOF > /tmp/rclone.conf
+  #         [rclone-gcs]
+  #         type = google cloud storage
+  #         service_account_file = /tmp/gcp-sa.json
+  #         project_number = 33202688731
 
-          [rclone-aks]
-          type = azureblob
-          account = veleroaksbackupstorage
-          key = ${{ secrets.AZURE_RCLONE_KEY }}
-          EOF
+  #         [rclone-aks]
+  #         type = azureblob
+  #         account = veleroaksbackupstorage
+  #         key = ${{ secrets.AZURE_RCLONE_KEY }}
+  #         EOF
 
-      - name: Dry Run Rclone Sync (GCS To ASA)
-        run: |
-          rclone --config /tmp/rclone.conf sync rclone-gcs:velero-backup-gke-cluster rclone-aks:velero/ --progress --dry-run
+  #     - name: Dry Run Rclone Sync (GCS To ASA)
+  #       run: |
+  #         rclone --config /tmp/rclone.conf sync rclone-gcs:velero-backup-gke-cluster rclone-aks:velero/ --progress --dry-run
       
-      - name: Run Rclone Sync (GCS To ASA)
-        run: |
-          rclone --config /tmp/rclone.conf sync rclone-gcs:velero-backup-gke-cluster rclone-aks:velero/ --progress
+  #     - name: Run Rclone Sync (GCS To ASA)
+  #       run: |
+  #         rclone --config /tmp/rclone.conf sync rclone-gcs:velero-backup-gke-cluster rclone-aks:velero/ --progress
 
