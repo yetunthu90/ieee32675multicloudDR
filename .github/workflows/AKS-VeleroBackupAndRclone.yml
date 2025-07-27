@@ -54,8 +54,8 @@ jobs:
             --secret-file ./credentials-velero \
             --backup-location-config resourceGroup=${{ env.RESOURCE_GROUP }},storageAccount=${{ env.STORAGE_ACCOUNT_NAME }} \
             --use-node-agent \
-            --default-volumes-to-fs-backup
 
+#            --default-volumes-to-fs-backup
       - name: Wait for Velero pods
         run: sleep 15
 
