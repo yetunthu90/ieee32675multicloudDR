@@ -50,8 +50,8 @@ jobs:
             --secret-file ./credentials-velero \
             --backup-location-config resourceGroup=${{ env.RESOURCE_GROUP }},storageAccount=${{ env.STORAGE_ACCOUNT_NAME }} \
             --use-node-agent \
-            --default-volumes-to-fs-backup
-            --image velero/velero:v1.16.1
+            --default-volumes-to-fs-backup \
+            --image velero/velero:v1.16.1 \
             --velero-pod-cpu-request=200m \
             --velero-pod-mem-request=128Mi \
             --node-agent-pod-cpu-request=200m \
