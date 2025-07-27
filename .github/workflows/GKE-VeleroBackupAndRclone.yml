@@ -114,6 +114,11 @@ jobs:
           key = ${{ secrets.AZURE_RCLONE_KEY }}
           EOF
 
-      - name: Run Rclone Sync (GCS To ASA)
+      - name: Dry Run Rclone Sync (GCS To ASA)
         run: |
           rclone --config /tmp/rclone.conf sync rclone-gcs:velero-backup-gke-cluster rclone-aks:velero/gke-backups --progress --dry-run
+      
+      - name: Run Rclone Sync (GCS To ASA)
+        run: |
+          rclone --config /tmp/rclone.conf sync rclone-gcs:velero-backup-gke-cluster rclone-aks:velero/gke-backups --progress
+
