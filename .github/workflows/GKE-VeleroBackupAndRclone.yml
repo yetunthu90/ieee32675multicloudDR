@@ -1,5 +1,9 @@
 name: GKE Velero Backup and Cross-Cloud Sync
-on: [workflow_call]
+#on: [workflow_call]
+on:
+  push:
+    branches:
+      - velvobackuptest
 
 jobs:
   GKE-Cluster-velero-backup:
@@ -63,7 +67,11 @@ jobs:
             --secret-file ./credentials-velero.json \
             --use-node-agent \
             --default-volumes-to-fs-backup \
-            --image velero/velero:v1.16.1 \
+            --velero-pod-cpu-request=100m \
+            --velero-pod-mem-request=128Mi \
+            --node-agent-pod-cpu-request=100m \
+            --node-agent-pod-mem-request=128Mi
+
 
 
       - name: Wait Velero Agent To be Ready
@@ -116,3 +124,4 @@ jobs:
   #       run: |
   #         rclone --config /tmp/rclone.conf sync rclone-gcs:velero-backup-gke-cluster rclone-aks:velero/ --progress
 
+#            --image velero/velero:v1.16.1 \
