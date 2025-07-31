@@ -1,0 +1,61 @@
+name: GKE Cluster Velero Restore
+on: [workflow_call]
+
+jobs:
+  GKE-Cluster-Velero-Restore:
+    runs-on: ubuntu-latest
+
+    env:
+      BUCKET_NAME: velero-backup-gke-cluster
+      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      CLUSTER_NAME: gke-laravel-dr
+      CLUSTER_REGION: us-central1
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Install gke-gcloud-auth-plugin
+        run: |
+         gcloud components list
+         echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+         curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+          sudo apt update
+          sudo apt-get install -y google-cloud-sdk-gke-gcloud-auth-plugin
+
+      - name: Get GKE credentials
+        run: |
+          gcloud container clusters get-credentials "$CLUSTER_NAME" \
+            --region "$CLUSTER_REGION" \
+            --project "$PROJECT_ID"
+
+      - name: Verify GKE Access
+        run: |
+
+          kubectl get pods
+          kubectl get svc
+
+      - name: Trigger Restore Process
+        run: |
+          LATEST_BACKUP=$(velero backup get --output json | jq -r 'map(select(.status.phase=="Completed")) | sort_by(.status.completionTimestamp) | last | .metadata.name')
+          echo "Restoring from backup: $LATEST_BACKUP"
+          velero restore create --from-backup $LATEST_BACKUP
+         
+      - name: Wait Restore Process
+        run: |
+         sleep 30
+
+      - name: Show Restore Status
+        run: velero restore get
+        
+      - name: Show Cluster Status
+        run: |
+          nslookup multiclouddr.trafficmanager.net
