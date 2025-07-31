@@ -1,0 +1,43 @@
+name: AKS Cluster Velero Restore
+
+on: [workflow_call]
+jobs:
+  AKS-Cluster-Velero-Restore:
+    runs-on: ubuntu-latest
+    env:
+      CLUSTER_NAME: aks-multicloud-dr
+      AKS_RESOURCE_GROUP: my-tfstate-rg
+      RESOURCE_GROUP: velerorcgroup
+      STORAGE_ACCOUNT_NAME: veleroaksbackupstorage
+      CONTAINER_NAME: velero
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set AKS context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: ${{ env.AKS_RESOURCE_GROUP }}
+          cluster-name: ${{ env.CLUSTER_NAME }}
+
+      - name: Trigger Restore Process
+        run: |
+          LATEST_BACKUP=$(velero backup get --output json | jq -r 'map(select(.status.phase=="Completed")) | sort_by(.status.completionTimestamp) | last | .metadata.name')
+          echo "Restoring from backup: $LATEST_BACKUP"
+          velero restore create --from-backup $LATEST_BACKUP
+          
+      - name: Wait for Restore Progress
+        run: sleep 30
+
+      - name: Show Restore Status
+        run: velero restore get
+        
+      - name: Show Cluster Status
+        run: |
+          nslookup multiclouddr.trafficmanager.net

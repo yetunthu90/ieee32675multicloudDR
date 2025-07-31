@@ -1,0 +1,40 @@
+name: Conditional Multi-Cloud Restore
+
+on:
+  repository_dispatch:
+    types: [azure-alert, gcp-alert]
+jobs:
+  Determine-Active-Cluster:
+    runs-on: ubuntu-latest
+    outputs:
+      selected-cluster: ${{ steps.resolve.outputs.cluster }}
+    steps:
+      - name: Resolve DNS and set output
+        id: resolve
+        run: |
+          IP=$(nslookup multiclouddr.trafficmanager.net | grep 'Address:' | tail -n1 | awk '{print $2}')
+          echo "Resolved IP: $IP"
+          if [ "$IP" == "4.246.216.66" ]; then
+            echo "cluster=aks" >> "$GITHUB_OUTPUT"
+          elif [ "$IP" == "35.188.36.154" ]; then
+            echo "cluster=gke" >> "$GITHUB_OUTPUT"
+          else
+            echo "Unknown IP resolved: $IP"
+            exit 1
+          fi
+
+#If the active cluster is Azure
+  Performed-AKS-Cluster-Restore-Job:
+    name: Run AKS Velero Restore Job
+    needs: Determine-Active-Cluster
+    if: needs.Determine-Active-Cluster.outputs.selected-cluster == 'aks'
+    uses: ./.github/workflows/AKS-Velero-Restore.yml
+    secrets: inherit
+
+#If the active cluster is Google
+  Performed-GKE-Cluster-Restore-Job:
+    name: Run GKE Velero Restore Job
+    needs: Determine-Active-Cluster
+    if: needs.Determine-Active-Cluster.outputs.selected-cluster == 'gke'
+    uses: ./.github/workflows/GKE-Velero-Restore.yml
+    secrets: inherit

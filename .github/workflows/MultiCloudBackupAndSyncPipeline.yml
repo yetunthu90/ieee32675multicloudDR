@@ -1,0 +1,44 @@
+name: Conditional Multi-Cloud Velero Backup with Rclone
+
+# on:
+#   push:
+#     branches:
+#       - main
+on:
+  schedule:
+    - cron: '0 * * * *'
+jobs:
+  Determine-Active-Cluster:
+    runs-on: ubuntu-latest
+    outputs:
+      selected-cluster: ${{ steps.resolve.outputs.cluster }}
+    steps:
+      - name: Resolve DNS and set output
+        id: resolve
+        run: |
+          IP=$(nslookup multiclouddr.trafficmanager.net | grep 'Address:' | tail -n1 | awk '{print $2}')
+          echo "Resolved IP: $IP"
+          if [ "$IP" == "4.246.216.66" ]; then
+            echo "cluster=aks" >> "$GITHUB_OUTPUT"
+          elif [ "$IP" == "35.188.36.154" ]; then
+            echo "cluster=gke" >> "$GITHUB_OUTPUT"
+          else
+            echo "Unknown IP resolved: $IP"
+            exit 1
+          fi
+
+#If the active cluster is Azure
+  AKS-Cluster-Is-Active:
+    name: Run AKS Velero Backup Job and Rclone Sync
+    needs: Determine-Active-Cluster
+    if: needs.Determine-Active-Cluster.outputs.selected-cluster == 'aks'
+    uses: ./.github/workflows/AKS-VeleroBackupAndRclone.yml
+    secrets: inherit
+
+#If the active cluster is Google
+  GKE-Cluster-Is-Active:
+    name: Run GKE Velero Backup Job and Rclone Sync
+    needs: Determine-Active-Cluster
+    if: needs.Determine-Active-Cluster.outputs.selected-cluster == 'gke'
+    uses: ./.github/workflows/GKE-VeleroBackupAndRclone.yml
+    secrets: inherit
