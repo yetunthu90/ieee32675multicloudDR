@@ -1,7 +1,7 @@
 on:
   push:
     branches:
-      - main
+      - pipelinetest
   workflow_dispatch:
 
 permissions:
