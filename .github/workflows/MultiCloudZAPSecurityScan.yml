@@ -1,9 +1,9 @@
 on:
   push:
     branches:
-      - velvobackuptest
+      - main
   workflow_dispatch:
-  
+
 permissions:
   contents: read
   issues: write
