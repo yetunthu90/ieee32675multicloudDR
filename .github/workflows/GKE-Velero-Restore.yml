@@ -51,10 +51,22 @@ jobs:
 
       - name: Trigger Restore Process
         run: |
-          velero backup get --output json
-          # LATEST_BACKUP=$(velero backup get --output json | jq -r 'map(select(.status.phase=="Completed")) | sort_by(.status.completionTimestamp) | last | .metadata.name')
-          # echo "Restoring from backup: $LATEST_BACKUP"
-          # velero restore create --from-backup $LATEST_BACKUP
+          BACKUPS_JSON=$(velero backup get --output json)
+          LATEST_BACKUP=$(echo "$BACKUPS_JSON" | jq -r '
+            .items
+            | map(select(.status.phase == "Completed"))
+            | sort_by(.status.completionTimestamp)
+            | last
+            | .metadata.name
+          ')
+
+          if [ -z "$LATEST_BACKUP" ] || [ "$LATEST_BACKUP" == "null" ]; then
+            echo " Sorry No completed Velero backups found. Cannot restore."
+            exit 1
+          fi
+
+          echo " Restoring from backup: $LATEST_BACKUP"
+          velero restore create --from-backup "$LATEST_BACKUP"
          
       - name: Wait Restore Process
         run: |
