@@ -3,6 +3,7 @@ name: Conditional Multi-Cloud Restore
 on:
   repository_dispatch:
     types: [azure-alert, gcp-alert]
+  workflow_dispatch:
 jobs:
   Determine-Active-Cluster:
     runs-on: ubuntu-latest
