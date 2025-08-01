@@ -43,6 +43,12 @@ jobs:
           kubectl get pods
           kubectl get svc
 
+      - name: Install Velero CLI
+        run: |
+          curl -L https://github.com/vmware-tanzu/velero/releases/download/v1.13.2/velero-v1.13.2-linux-amd64.tar.gz | tar -xz
+          sudo mv velero-v1.13.2-linux-amd64/velero /usr/local/bin
+          velero version
+
       - name: Trigger Restore Process
         run: |
           LATEST_BACKUP=$(velero backup get --output json | jq -r 'map(select(.status.phase=="Completed")) | sort_by(.status.completionTimestamp) | last | .metadata.name')
@@ -55,7 +61,7 @@ jobs:
 
       - name: Show Restore Status
         run: velero restore get
-        
+
       - name: Show Cluster Status
         run: |
           nslookup multiclouddr.trafficmanager.net
