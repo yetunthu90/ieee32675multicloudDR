@@ -51,7 +51,7 @@ jobs:
 
       - name: Trigger Restore Process
         run: |
-          velero backup get
+          velero backup get --output json
           # LATEST_BACKUP=$(velero backup get --output json | jq -r 'map(select(.status.phase=="Completed")) | sort_by(.status.completionTimestamp) | last | .metadata.name')
           # echo "Restoring from backup: $LATEST_BACKUP"
           # velero restore create --from-backup $LATEST_BACKUP
