@@ -25,6 +25,12 @@ jobs:
         with:
           resource-group: ${{ env.AKS_RESOURCE_GROUP }}
           cluster-name: ${{ env.CLUSTER_NAME }}
+          
+      - name: Install Velero CLI
+        run: |
+          curl -L https://github.com/vmware-tanzu/velero/releases/download/v1.13.2/velero-v1.13.2-linux-amd64.tar.gz | tar -xz
+          sudo mv velero-v1.13.2-linux-amd64/velero /usr/local/bin
+          velero version
 
       - name: Trigger Restore Process
         run: |
@@ -37,7 +43,7 @@ jobs:
 
       - name: Show Restore Status
         run: velero restore get
-        
+
       - name: Show Cluster Status
         run: |
           nslookup multiclouddr.trafficmanager.net
