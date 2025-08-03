@@ -3,7 +3,7 @@ name: Multi Cloud DR Pipeline
 on:
   push:
     branches:
-      - pipelinetest
+      - main
   workflow_dispatch:
 
 jobs:
@@ -153,6 +153,12 @@ jobs:
           kubectl get deployments -n default
           kubectl get svc
           kubectl get pods
+      - name: Rolling Update Deployments
+        run: |
+          kubectl set image deployment/app app-container=${{ secrets.DOCKER_USERNAME }}/app:$VERSION
+          kubectl set image deployment/web web-container=${{ secrets.DOCKER_USERNAME }}/web:$VERSION
+          kubectl set image deployment/database mysql=${{ secrets.DOCKER_USERNAME }}/mysqldb:$VERSION
+          kubectl set image deployment/phpmyadmin phpmyadmin=${{ secrets.DOCKER_USERNAME }}/phpmyadmin:$VERSION
 
 
   GKE-Infrastructure-Provisioning-With-Terraform:
@@ -260,3 +266,9 @@ jobs:
           kubectl get nodes
           kubectl get pods
           kubectl get svc
+      - name: Rolling Update Deployments
+        run: |
+          kubectl set image deployment/app app-container=${{ secrets.DOCKER_USERNAME }}/app:$VERSION
+          kubectl set image deployment/web web-container=${{ secrets.DOCKER_USERNAME }}/web:$VERSION
+          kubectl set image deployment/database mysql=${{ secrets.DOCKER_USERNAME }}/mysqldb:$VERSION
+          kubectl set image deployment/phpmyadmin phpmyadmin=${{ secrets.DOCKER_USERNAME }}/phpmyadmin:$VERSION
