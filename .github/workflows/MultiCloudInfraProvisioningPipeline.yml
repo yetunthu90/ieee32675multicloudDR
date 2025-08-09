@@ -155,9 +155,9 @@ jobs:
           kubectl get pods
       - name: Rolling Update Deployments
         run: |
-          kubectl set image deployment/app app-container=${{ secrets.DOCKER_USERNAME }}/app:$VERSION
-          kubectl set image deployment/web web-container=${{ secrets.DOCKER_USERNAME }}/web:$VERSION
-          kubectl set image deployment/database mysql=${{ secrets.DOCKER_USERNAME }}/mysqldb:$VERSION
+          kubectl set image deployment/app app-container=${{ secrets.DOCKER_USERNAME }}/multiclouddrapp:$VERSION
+          kubectl set image deployment/web web-container=${{ secrets.DOCKER_USERNAME }}/multiclouddrweb:$VERSION
+          kubectl set image deployment/database mysql=${{ secrets.DOCKER_USERNAME }}/multiclouddrdatabase:$VERSION
          
 
   GKE-Infrastructure-Provisioning-With-Terraform:
@@ -267,7 +267,7 @@ jobs:
           kubectl get svc
       - name: Rolling Update Deployments
         run: |
-          kubectl set image deployment/app app-container=${{ secrets.DOCKER_USERNAME }}/app:$VERSION
-          kubectl set image deployment/web web-container=${{ secrets.DOCKER_USERNAME }}/web:$VERSION
-          kubectl set image deployment/database mysql=${{ secrets.DOCKER_USERNAME }}/mysqldb:$VERSION
+          kubectl set image deployment/app app-container=${{ secrets.DOCKER_USERNAME }}/multiclouddrapp:$VERSION
+          kubectl set image deployment/web web-container=${{ secrets.DOCKER_USERNAME }}/multiclouddrweb:$VERSION
+          kubectl set image deployment/database mysql=${{ secrets.DOCKER_USERNAME }}/multiclouddrdatabase:$VERSION
          
