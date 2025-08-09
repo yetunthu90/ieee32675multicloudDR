@@ -1,12 +1,12 @@
 name: Conditional Multi-Cloud Velero Backup with Rclone
 
-# on:
-#   push:
-#     branches:
-#       - pipelinetest
 on:
-  schedule:
-    - cron: '*/5 * * * *'
+  push:
+    branches:
+      - pipelinetest
+# on:
+#   schedule:
+#     - cron: '*/5 * * * *'
 jobs:
   Determine-Active-Cluster:
     runs-on: ubuntu-latest
