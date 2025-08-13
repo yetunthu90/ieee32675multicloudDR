@@ -2,7 +2,8 @@ name: Conditional Multi-Cloud Restore
 
 on:
   repository_dispatch:
-    types: [azure-alert, gcp-alert]
+    # types: [azure-alert, gcp-alert]
+    types: [azure-alert]
   workflow_dispatch:
 jobs:
   Determine-Active-Cluster:

@@ -3,7 +3,7 @@ name: Multi Cloud DR Pipeline
 on:
   push:
     branches:
-      - main
+      - pipelinetest
   workflow_dispatch:
 
 jobs:
