@@ -72,9 +72,9 @@ jobs:
         run: |
          sleep 30
 
-      - name: Show Restore Status
-        run: velero restore get
-
       - name: Show Cluster Status
+        run: curl -I multiclouddr.trafficmanager.net
+
+      - name: Show Cluster IP
         run: |
           nslookup multiclouddr.trafficmanager.net
