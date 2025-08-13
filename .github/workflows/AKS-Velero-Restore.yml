@@ -51,12 +51,12 @@ jobs:
           echo " Restoring from backup: $LATEST_BACKUP"
           velero restore create --from-backup "$LATEST_BACKUP"
           
-      - name: Wait for Restore Progress
+      - name: Wait for Restore Process
         run: sleep 30
 
-      - name: Show Restore Status
-        run: velero restore get
-
       - name: Show Cluster Status
+        run: curl -I multiclouddr.trafficmanager.net
+
+      - name: Show Cluster IP
         run: |
           nslookup multiclouddr.trafficmanager.net
